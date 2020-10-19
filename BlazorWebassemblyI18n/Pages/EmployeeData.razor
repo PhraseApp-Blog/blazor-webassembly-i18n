@@ -1,0 +1,105 @@
+﻿@page "/employee"
+@using Newtonsoft.Json;
+@inject IJSRuntime JSRuntime
+@inject Microsoft.Extensions.Localization.IStringLocalizer<App> Localize
+
+<h1>@Localize["Employee Data"]</h1>
+<br />
+<EditForm Model="@employee" OnSubmit="SaveEmployeeToLocalStorage">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label col-md-12">@Localize["Name"]</label>
+                <input class="form-control" @bind="employee.Name" />
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-12">@Localize["Gender"]</label>
+                <select class="form-control" @bind="employee.Gender">
+                    <option value="">@Localize["Select Gender"]</option>
+                    <option value="Male">@Localize["Male"]</option>
+                    <option value="Female">@Localize["Female"]</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label col-md-12">@Localize["City"]</label>
+                <input class="form-control" @bind="employee.City" />
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-12">@Localize["Salary"]</label>
+                <input type="number" class="form-control" @bind="employee.Salary" />
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+</EditForm>
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <table class='table'>
+            <thead class="table-active">
+                <tr>
+                    @foreach (string header in TableHeader)
+                    {
+                        <th>
+                            @Localize[header]
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Employee emp in lstEmployees)
+                {
+                    <tr>
+                        <td>@emp.Name</td>
+                        <td>@Localize[emp.Gender]</td>
+                        <td>@emp.City</td>
+                        <td>@emp.Salary.ToString("C2")</td>
+                        <td>@emp.JoiningDate</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code{
+    Employee employee = new Employee();
+    List<Employee> lstEmployees = new List<Employee>();
+
+    string[] TableHeader = { "Name", "Gender", "City", "Salary", "Joining Date" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var empGetJS = (IJSInProcessRuntime)JSRuntime;
+        var empList = await empGetJS.InvokeAsync<string>("employeeData.get");
+        FetchEmployeeFromLocalStorage(empList);
+    }
+
+    void SaveEmployeeToLocalStorage()
+    {
+        employee.JoiningDate = DateTime.Now;
+        lstEmployees.Add(employee);
+        var empSetJS = (IJSInProcessRuntime)JSRuntime;
+        empSetJS.InvokeVoid("employeeData.set", JsonConvert.SerializeObject(lstEmployees));
+        employee = new Employee();
+    }
+
+    void FetchEmployeeFromLocalStorage(string empList)
+    {
+        if (empList != null)
+        {
+            lstEmployees = JsonConvert.DeserializeObject<List<Employee>>(empList);
+        }
+    }
+
+    class Employee
+    {
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public string City { get; set; }
+        public int Salary { get; set; }
+        public DateTime JoiningDate { get; set; }
+    }
+}

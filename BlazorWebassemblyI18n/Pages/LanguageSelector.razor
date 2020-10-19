@@ -1,0 +1,37 @@
+﻿@using  System.Globalization
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Nav
+
+<div class="col-md-3">
+    <select class="form-control" @bind="Culture">
+        @foreach (var language in supportedLanguages)
+        {
+            <option value="@language">@language.DisplayName</option>
+        }
+    </select>
+</div>
+
+@code
+{
+    CultureInfo[] supportedLanguages = new[]
+    {
+        new CultureInfo("en-US"),
+        new CultureInfo("fr-FR"),
+        new CultureInfo("ar-AE"),
+    };
+
+    CultureInfo Culture
+    {
+        get => CultureInfo.CurrentCulture;
+        set
+        {
+            if (CultureInfo.CurrentCulture != value)
+            {
+                var js = (IJSInProcessRuntime)JSRuntime;
+                js.InvokeVoid("appCulture.set", value.Name);
+
+                Nav.NavigateTo(Nav.Uri, forceLoad: true);
+            }
+        }
+    }
+}
