@@ -87,8 +87,6 @@
         var empSetJS = (IJSInProcessRuntime)JSRuntime;
         empSetJS.InvokeVoid("employeeData.set", JsonConvert.SerializeObject(lstEmployees));
         employee = new Employee();
-
-        string str = Localize["Employee Data"];
     }
 
     void FetchEmployeeFromLocalStorage(string empList)
