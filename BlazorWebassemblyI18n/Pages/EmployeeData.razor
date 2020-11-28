@@ -3,7 +3,7 @@
 @inject IJSRuntime JSRuntime
 @inject Microsoft.Extensions.Localization.IStringLocalizer<App> Localize
 
-<h1>@Localize["Employee Data"]</h1>
+<h1>@title</h1>
 <br />
 <EditForm Model="@employee" OnSubmit="SaveEmployeeToLocalStorage">
     <div class="row">
@@ -67,11 +67,14 @@
 @code{
     Employee employee = new Employee();
     List<Employee> lstEmployees = new List<Employee>();
+    string title;
+    string companyName = "Phrase";
 
     string[] TableHeader = { "Name", "Gender", "City", "Salary", "Joining Date" };
 
     protected override async Task OnInitializedAsync()
     {
+        setTitle();
         var empGetJS = (IJSInProcessRuntime)JSRuntime;
         var empList = await empGetJS.InvokeAsync<string>("employeeData.get");
         FetchEmployeeFromLocalStorage(empList);
@@ -84,6 +87,8 @@
         var empSetJS = (IJSInProcessRuntime)JSRuntime;
         empSetJS.InvokeVoid("employeeData.set", JsonConvert.SerializeObject(lstEmployees));
         employee = new Employee();
+
+        string str = Localize["Employee Data"];
     }
 
     void FetchEmployeeFromLocalStorage(string empList)
@@ -92,6 +97,12 @@
         {
             lstEmployees = JsonConvert.DeserializeObject<List<Employee>>(empList);
         }
+    }
+
+    void setTitle()
+    {
+        string localizedTitle = Localize["Title"];
+        title = string.Format(localizedTitle, companyName);
     }
 
     class Employee
